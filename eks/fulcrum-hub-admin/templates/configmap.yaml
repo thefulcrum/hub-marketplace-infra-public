@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hub-settings
+data:
+  fulcrum_api_endpoint: {{ .Values.fulcrum_api_endpoint }}
+  hub_api_endpoint: {{ .Values.hub_api_endpoint }}
+  googleTagId: "{{ .Values.googleTagId }}"
+  hubSegments: "{{ .Values.hubFeatures.segments }}"
+  hubCustomAttributes: "{{ .Values.hubFeatures.customAttributes }}"
+  hubSegmentTemplates: "{{ .Values.hubFeatures.segmentTemplates }}"
+  hubTables: "{{ .Values.hubFeatures.tables }}"
+  hubSchedules: "{{ .Values.hubFeatures.schedules }}"
+  hubComplianceCentre: "{{ .Values.hubFeatures.complianceCentre }}"
+  hubMarop: "{{ .Values.hubFeatures.marop }}"
+  hubTenancies: "{{ .Values.hubFeatures.tenancies }}"
+  hubAudienceAttributes: "{{ .Values.hubFeatures.audienceAttributes }}"
+  hubBriefsDevelopment: "{{ .Values.hubFeatures.briefsDevelopment }}"

@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ui.fullname" . }}
+  labels:
+    {{- include "ui.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        timestamp: {{ now | quote }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ui.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ui.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: "FULCRUM_API_ENDPOINT"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: fulcrum_api_endpoint
+            - name: "HUB_API_ENDPOINT"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hub_api_endpoint
+            - name: "GOOGLE_TAG_ID"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: googleTagId
+            - name: "__SEGMENTS"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubSegments
+            - name: "__CUSTOM_ATTRIBUTES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubCustomAttributes
+            - name: "__SEGMENTTEMPLATES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubSegmentTemplates
+            - name: "__TABLES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubTables
+            - name: "__SCHEDULES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubSchedules
+            - name: "__COMPLIANCECENTRE"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubComplianceCentre
+            - name: "__MAROP"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubMarop
+            - name: "__TENANCIES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubTenancies
+            - name: "__AUDIENCEATTRIBUTES"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubAudienceAttributes
+            - name: "__BRIEFS_DEVELOPMENT"
+              valueFrom:
+                configMapKeyRef:
+                  name: hub-settings
+                  key: hubBriefsDevelopment
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

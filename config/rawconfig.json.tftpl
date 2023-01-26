@@ -1,0 +1,310 @@
+{
+  "deploy": {
+    "fulcrum": {
+      "cloud_env": "AWS",
+      "deploy_environment": "${env}",
+      "base_url": "${base_url}",
+      "api_url": "${api_url}",
+      "jwt_secret": "${jwt_secret}",
+      "jwt_token_expiry": 3600,
+      "jwt_access_token_expiry": 3600,
+      "jwt_refresh_token_expiry": 7200,
+      "app_flags": {
+        "pii": false
+      },
+      "dw_to_api_tables_sync": {
+        "customer": 600,
+        "attribute": 800,
+        "informational": 700,
+        "event_listeners": {
+          "segment_listener": {
+            "schedule_interval": 60
+          }
+        }
+      },
+      "mongodb": {
+        "host": "mongodb",
+        "port": 27017
+      },
+      "hub_api_v2": {
+        "name": "HUB API v2",
+        "description": "HUB Web service",
+        "version_code": 2,
+        "debug": true,
+        "docs": true,
+        "logfile_path": "log/api.log",
+        "host": "0.0.0.0",
+        "door": 5000,
+        "upload_size": 16,
+        "security": "apikey",
+        "authorizations": {
+          "apikey": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization"
+          }
+        }
+      },
+      "host_type": "hub",
+      "hub_instances": {},
+      "redis": {
+        "ssl": true,
+        "host": "${redis_host}",
+        "port": 6379,
+        "db": 0,
+        "collections": {
+          "db": 0,
+          "db_blacklist": 1,
+          "db_reset_token": 2,
+          "db_segment_queue": 3,
+          "db_revoke": 4,
+          "db_streaming_queue": 5
+        }
+      },
+      "cryptography_provider": {
+        "symmetric_keys": [
+          "${cryptography_provider_symmetric_keys}"
+        ]
+      },
+      "redis_logwatch": {
+        "host": "${redis_host}",
+        "port": 6379,
+        "db": 0
+      },
+      "dbSchemas": {
+        "fulcrum": "fulcrum",
+        "cdp": "cdp",
+        "attributes": "cdp_attributes",
+        "informational": "cdp_informational",
+        "custom_attributes": "cdp_custom_attributes",
+        "custom_attributes_views": "cdp_custom_attributes_views",
+        "marketing": "marketing",
+        "hub": "public"
+      },
+      "segmentBuilder": {
+        "allowedSchemas": [
+          "cdp",
+          "cdp_custom_attributes",
+          "cdp_attributes",
+          "cdp_informational",
+          "cdp_custom_attributes_views"
+        ]
+      },      
+      "dw": {
+        "database": "${dw_database}",
+        "dialect": "citus",
+        "engine": "postgresql+psycopg2",
+        "port": 5432,
+        "host": "${dw_host}",
+        "username": "${dw_username}",
+        "password": "${dw_password}",
+        "driver": "pgsql",
+        "pool_size": 64,
+        "max_overflow": -1,
+        "echo": false,
+        "echo_pool": false
+      },
+      "dw_readonly": {
+        "database": "${dw_readonly_database}",
+        "dialect": "citus",
+        "engine": "postgresql+psycopg2",
+        "port": 5432,
+        "host": "${dw_readonly_host}",
+        "username": "${dw_readonly_username}",
+        "password": "${dw_readonly_password}",
+        "driver": "pgsql",
+        "pool_size": 64,
+        "max_overflow": -1,
+        "echo": false,
+        "echo_pool": false
+      },
+      "db": {
+        "database": "${db_database}",
+        "dialect": "citus",
+        "driver": "pgsql",
+        "engine": "postgresql+psycopg2",
+        "port": 5432,
+        "host": "${db_host}",
+        "username": "${db_username}",
+        "password": "${db_password}",
+        "pool_size": 256,
+        "max_overflow": -1,
+        "echo": false,
+        "echo_pool": false
+      },
+      "db_readonly": {
+        "database": "${db_readonly_database}",
+        "dialect": "citus",
+        "driver": "pgsql",
+        "engine": "postgresql+psycopg2",
+        "port": 5432,
+        "host": "${db_readonly_host}",
+        "username": "${db_readonly_username}",
+        "password": "${db_readonly_password}",
+        "pool_size": 64,
+        "max_overflow": -1,
+        "echo": false,
+        "echo_pool": false
+      },
+      "s3": {
+        "region": "ap-southeast-2",
+        "bucket": "${s3_bucket}"
+      },
+      "secpii": {
+        "url": "http://secpii:8080"
+      },
+      "alerta": {
+        "url": "https://alerta.infra.n3hub.com/api",
+        "key": "XXX",
+        "customer": "container-development"
+      },
+      "celery_workers": {
+        "workers": [
+          {
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "watcher",
+            "concurrency": 1,
+            "queues_name": [
+              "watcher_queue"
+            ]
+          },
+          {
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "segment_stub_worker",
+            "concurrency": 5,
+            "queues_name": [
+              "table_management_stub",
+              "cdp_table_sync",
+              "segment_stub",
+              "segment_preview",
+              "scheduling_tasks_queue",
+              "segment_export_queue",
+              "start_plynx_workflow_queue"
+            ]
+          },
+          {
+            "concurrency": 1,
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "bash_jobs",
+            "queues_name": [
+              "bash_jobs"
+            ]
+          },
+          {
+            "concurrency": 1,
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "api_jobs",
+            "queues_name": [
+              "api_jobs"
+            ]
+          },
+          {
+            "concurrency": 4,
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "bash_concurrent_queue",
+            "queues_name": [
+              "bash_concurrent_queue"
+            ]
+          },        
+          {
+            "concurrency": 4,
+            "host_name": [
+              "container-dev-hub"
+            ],
+            "name": "commands_queue",
+            "queues_name": [
+              "commands_queue"
+            ]
+          }
+        ],
+        "log_level": "INFO",
+        "log_file": "/var/log/fulcrum/celery.log",
+        "pid_location": "/var/run/fulcrum/celery_%n.pid"
+      },
+      "sendgrid": {
+        "host": "smtp.sendgrid.net",
+        "user": "apikey",
+        "port": "587",
+        "api_key": "XXXX",
+        "passwd": "XXX"
+      },
+      "email_templates": {
+        "user_forgot_password": {
+          "target_model": [
+            "db.models.db.user",
+            "User",
+            "email",
+            "email"
+          ],
+          "template_id": "d-b70d38e11c974ef885224c146707ba81",
+          "type": "post",
+          "vars": [
+            [
+              "update_password_link",
+              "update_password_link"
+            ]
+          ]
+        },
+        "user_reset_password_by_admin": {
+          "target_model": [
+            "db.models.db.user",
+            "User",
+            "id",
+            "id"
+          ],
+          "template_id": "d-b70d38e11c974ef885224c146707ba81",
+          "type": "post",
+          "vars": [
+            [
+              "update_password_link",
+              "update_password_link"
+            ]
+          ]
+        },
+        "user_welcome": {
+          "target_model": [
+            "db.models.db.user",
+            "User",
+            "email",
+            "email"
+          ],
+          "template_id": "d-b41886fa10944e46a955beb853f62b1d",
+          "type": "post",
+          "vars": [
+            [
+              "update_password_link",
+              "update_password_link"
+            ]
+          ]
+        }
+      },
+      "plynx": {"protocol": "http"},
+      "celery": {
+        "broker_url": "redis://${redis_host}:6379",
+        "result_backend": "redis://${redis_host}:6379",
+        "worker_hijack_root_logger": false,
+        "logfile": "/var/log/fulcrum/fulcrum.log",
+        "task_track_started": true,
+        "worker_send_task_events": true
+      },
+      "google_oauth": {
+        "client_id": "",
+        "client_secret": "",
+        "redirect_url": "/admin/instances/new",
+        "auth_url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent",
+        "token_url": "https://oauth2.googleapis.com/token",
+        "developer_token": ""
+      }
+    }
+  }
+}

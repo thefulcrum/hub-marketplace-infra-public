@@ -1,0 +1,62 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${name}
+  region: ${region}
+  version: "1.24"
+
+vpc:
+  id: "${vpc_id}"
+  subnets:
+    private:
+    %{ for id, zone in private_subnets }
+      ${zone}:
+        id: ${id}
+    %{ endfor ~}
+
+    public:
+    %{ for id, zone in public_subnets }
+      ${zone}:
+        id: ${id}
+    %{ endfor ~}
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: s3-access
+      # if no namespace is set, "default" will be used;
+      # the namespace will be created if it doesn't exist already
+      # namespace: default
+      labels: {aws-usage: "application"}
+    attachPolicyARNs:
+    - "${s3_access_policy}"
+
+fargateProfiles:
+  - name: fp-default
+    podExecutionRoleARN: "${pod_execution_role}"
+    selectors:
+      - namespace: default
+    subnets:
+      %{ for id, zone in private_subnets }
+      - ${id}
+      %{ endfor ~}   
+    
+
+managedNodeGroups:
+  - name: ng-1
+    privateNetworking: true
+    instanceType: t2.small
+    desiredCapacity: 1
+    securityGroups:
+      attachIDs: [${ec2_nodes_sg}]
+    iam:
+      withAddonPolicies:
+        efs: true
+      attachPolicyARNs:
+        - ${additional_policies}
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess

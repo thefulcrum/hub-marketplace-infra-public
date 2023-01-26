@@ -1,0 +1,11 @@
+helm
+eks/rawconfig.json
+eks/alembic.ini
+eks/cluster.yaml
+eks/efs.yaml
+.git/
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate
+terraform/.terraform.lock.hcl
+terraform/.terraform.tfstate.lock.info
+terraform/.terraform/*
